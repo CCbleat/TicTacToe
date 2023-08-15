@@ -4,17 +4,28 @@ import { useState } from "react";
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0; // 管理X是否是下一个玩家
+  const [position, setPosition] = useState([]);
+  const xIsNext = currentMove % 2 === 0; // 管理X是否是下一个玩家, can derived from currentMove
   const currentSquares = history[currentMove];
 
-  function handlePlay(nextSquares) {
+  function getPosition(i) {
+    let row = Math.floor(i / 3) + 1,
+      column = (i % 3) + 1;
+    return [row, column];
+  }
+
+  function handlePlay(nextSquares, nextIndex) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+    setPosition(getPosition(nextIndex));
   }
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
+    if (nextMove === 0) {
+      setPosition([]);
+    }
   }
 
   const moves = history.map((squares, move) => {
@@ -28,7 +39,12 @@ export default function Game() {
       // 这里由于 落子永远不会被重新排序、删除或从中间插入，
       // 因此使用落子的索引作为 key 是安全的。
       <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
+        <button
+          onClick={() => jumpTo(move)}
+          className={move === currentMove ? "current-step" : ""}
+        >
+          {description}
+        </button>
       </li>
     );
   });
@@ -37,6 +53,9 @@ export default function Game() {
     <div className="game">
       <div className="game-board">
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        {position.length > 0 ? (
+          <p>{`Current position: X: ${position[0]}, Y: ${position[1]}`}</p>
+        ) : null}
       </div>
       <div className="game-info">
         <ol>{moves}</ol>
@@ -55,7 +74,7 @@ function Board({ xIsNext, squares, onPlay }) {
     } else {
       nextSquares[i] = "O";
     }
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   }
 
   // display if there is already a winner
