@@ -5,7 +5,7 @@ export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [position, setPosition] = useState([]);
-  const [isReverse, setIsReverse] = useState(true);
+  const [isReverse, setIsReverse] = useState(false);
   const xIsNext = currentMove % 2 === 0; // 管理X是否是下一个玩家, can derived from currentMove
   const currentSquares = history[currentMove];
 
@@ -67,6 +67,10 @@ export default function Game() {
         ) : null}
       </div>
       <div className="game-info">
+        <div>
+          <button onClick={() => setIsReverse(!isReverse)}>Switch Sorted</button>
+          {/* <button></button> */}
+        </div>
         <ol>{moves}</ol>
       </div>
     </div>
