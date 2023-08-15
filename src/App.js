@@ -5,6 +5,7 @@ export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [position, setPosition] = useState([]);
+  const [isReverse, setIsReverse] = useState(true);
   const xIsNext = currentMove % 2 === 0; // 管理X是否是下一个玩家, can derived from currentMove
   const currentSquares = history[currentMove];
 
@@ -28,26 +29,34 @@ export default function Game() {
     }
   }
 
-  const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = "Go to move #" + move;
-    } else {
-      description = "Go to game start";
+  function getMoves() {
+    const res = history.map((squares, move) => {
+      let description;
+      if (move > 0) {
+        description = "Go to move #" + move;
+      } else {
+        description = "Go to game start";
+      }
+      return (
+        // 这里由于 落子永远不会被重新排序、删除或从中间插入，
+        // 因此使用落子的索引作为 key 是安全的。
+        <li key={move}>
+          <button
+            onClick={() => jumpTo(move)}
+            className={move === currentMove ? "current-step" : ""}
+          >
+            {description}
+          </button>
+        </li>
+      );
+    });
+    if (isReverse) {
+      return res.slice().reverse();
     }
-    return (
-      // 这里由于 落子永远不会被重新排序、删除或从中间插入，
-      // 因此使用落子的索引作为 key 是安全的。
-      <li key={move}>
-        <button
-          onClick={() => jumpTo(move)}
-          className={move === currentMove ? "current-step" : ""}
-        >
-          {description}
-        </button>
-      </li>
-    );
-  });
+    return res;
+  }
+
+  const moves = getMoves();
 
   return (
     <div className="game">
