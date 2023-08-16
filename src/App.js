@@ -1,6 +1,6 @@
 import React from "react";
-import { useState } from "react";
-import { calculateWinner, getPosition } from "./utils";
+import { useState, useEffect } from "react";
+import { calculateWinner, getPosition, getWinnerList } from "./utils";
 import Square from "./components/Square";
 
 export default function Game() {
@@ -57,7 +57,12 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board
+          xIsNext={xIsNext}
+          squares={currentSquares}
+          onPlay={handlePlay}
+          currentMove={currentMove}
+        />
         {position.length > 0 ? (
           <p>{`Current position: X: ${position[0]}, Y: ${position[1]}`}</p>
         ) : null}
@@ -75,10 +80,11 @@ export default function Game() {
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ xIsNext, squares, onPlay, currentMove }) {
+  const [winnerList, setWinnerList] = useState([-1, -1, -1]); // 保存赢家列表
+
   function handleClick(i) {
     if (squares[i] || calculateWinner(squares)) return; // 如果已经有值了，就不再处理
-
     const nextSquares = squares.slice();
     if (xIsNext) {
       nextSquares[i] = "X";
@@ -88,14 +94,20 @@ function Board({ xIsNext, squares, onPlay }) {
     onPlay(nextSquares, i);
   }
 
+  useEffect(() => {
+    setWinnerList(getWinnerList(squares));
+  }, [squares]);
+
   // display if there is already a winner
   // otherwise display next player
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
     status = "Winner: " + winner;
-  } else {
+  } else if (currentMove < 9) {
     status = "Next player: " + (xIsNext ? "X" : "O");
+  } else {
+    status = "Draw";
   }
 
   const boardSize = 3;
@@ -106,12 +118,19 @@ function Board({ xIsNext, squares, onPlay }) {
       const index = i * boardSize + j;
       rowSquares.push(
         <Square
+          key={"index" + index}
+          index={index}
+          winnerList={winnerList}
           value={squares[index]}
           onSquareClick={() => handleClick(index)}
         ></Square>
       );
     }
-    boardRow.push(<div className="board-row">{rowSquares}</div>);
+    boardRow.push(
+      <div key={"boardRow" + i} className="board-row">
+        {rowSquares}
+      </div>
+    );
   }
 
   return (
